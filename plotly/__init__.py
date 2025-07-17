@@ -192,3 +192,52 @@ def _jupyter_labextension_paths():
             "dest": "jupyterlab-plotly",
         }
     ]
+
+# -----------------------------------------------------------------------------
+# Compatibility shim for JupyterLab >= 4.4
+# -----------------------------------------------------------------------------
+import json as _plotly_json
+from pathlib import Path as _plotly_Path
+
+def _plotly__ensure_labextension_install_json():
+    """Create plotly/labextension/install.json with required metadata if missing."""
+    try:
+        _lab_path = _plotly_Path(__file__).parent / "labextension"
+        _lab_path.mkdir(parents=True, exist_ok=True)
+        _install_json = _lab_path / "install.json"
+        _data = {}
+        if _install_json.exists():
+            try:
+                _data = _plotly_json.loads(_install_json.read_text())
+            except Exception:
+                _data = {}
+        changed = False
+        if _data.get("packageManager") != "python":
+            _data["packageManager"] = "python"
+            changed = True
+        if _data.get("packageName") != "plotly":
+            _data["packageName"] = "plotly"
+            changed = True
+        if changed or not _install_json.exists():
+            _install_json.write_text(_plotly_json.dumps(_data))
+    except Exception:
+        # Never break import if writing the file fails (e.g., read-only fs).
+        pass
+
+
+_plotly__ensure_labextension_install_json()
+
+
+def _jupyter_labextension_paths():
+    """Return JupyterLab extension metadata required by JupyterLab 4.4+."""
+    return [
+        {
+            "src": "labextension",
+            "dest": "jupyterlab-plotly",
+            "packageManager": "python",
+            "packageName": "plotly",
+        }
+    ]
+
+# Execute shim immediately at import time
+_plotly__ensure_labextension_install_json()
