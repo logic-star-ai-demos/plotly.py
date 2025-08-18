@@ -347,6 +347,32 @@ an instance of :class:`plotly.graph_objs.layout.updatemenu.Button`""")
         self._skip_invalid = kwargs.pop("skip_invalid", False)
         self._validate = kwargs.pop("_validate", True)
 
+        # Convert 'title' string values in args/args2 to {'text': ...} dicts.
+        def _coerce_title_in_args(val):
+            def _coerce_in_dict(d):
+                if isinstance(d, dict) and "title" in d and isinstance(d.get("title"), str):
+                    d = d.copy()
+                    d["title"] = {"text": d["title"]}
+                return d
+            if isinstance(val, (list, tuple)):
+                coerced = list(val)
+                for i, item in enumerate(coerced):
+                    if isinstance(item, dict):
+                        coerced[i] = _coerce_in_dict(item)
+                return coerced
+            elif isinstance(val, dict):
+                return _coerce_in_dict(val)
+            return val
+
+        if isinstance(arg, dict) and "args" in arg:
+            arg["args"] = _coerce_title_in_args(arg.get("args"))
+        if isinstance(arg, dict) and "args2" in arg:
+            arg["args2"] = _coerce_title_in_args(arg.get("args2"))
+        if args is not None:
+            args = _coerce_title_in_args(args)
+        if args2 is not None:
+            args2 = _coerce_title_in_args(args2)
+
         self._set_property("args", arg, args)
         self._set_property("args2", arg, args2)
         self._set_property("execute", arg, execute)
