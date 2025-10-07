@@ -1,5 +1,3 @@
-# ruff: noqa: F401
-
 from _plotly_utils.importers import relative_import
 from typing import TYPE_CHECKING
 
@@ -20,6 +18,7 @@ if TYPE_CHECKING:
     from ._kaleido import defaults, get_chrome
 
     __all__ = [
+        "install_chrome",
         "to_image",
         "write_image",
         "write_images",
@@ -68,3 +67,12 @@ else:
     from plotly.io import templates
 
     templates._default = "plotly"
+
+    def install_chrome():
+        """Install Chrome for static image export using Kaleido."""
+        import subprocess
+        try:
+            subprocess.run(["plotly_get_chrome", "-y"], check=True)
+        except Exception:
+
+            pass
