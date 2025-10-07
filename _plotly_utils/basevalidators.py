@@ -111,6 +111,22 @@ def copy_to_readonly_numpy_array(v, kind=None, force_numeric=False):
         if overrides:
             v = v.with_columns(**overrides)
         v = v.to_numpy()
+    else:
+        pl = get_module("polars")  # handle Polars Series if present
+        if pl is not None:
+            Series = getattr(pl, "Series", None)
+            if Series is not None and isinstance(v, Series):
+                try:
+                    tz = getattr(v.dtype, "time_zone", None) or getattr(v.dtype, "timezone", None) or getattr(v.dtype, "tz", None)
+                    if tz is not None:
+                        v = v.dt.replace_time_zone(None).to_numpy()
+                    else:
+                        try:
+                            v = v.to_numpy()
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
 
     if not isinstance(v, np.ndarray):
         # v has its own logic on how to convert itself into a numpy array
