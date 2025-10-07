@@ -353,7 +353,17 @@ def imshow(
 
     # Default behaviour of binary_string: True for RGB images, False for 2D
     if binary_string is None:
-        binary_string = img.ndim >= (3 + slice_dimensions) and not is_dataframe
+        if not is_dataframe and img.ndim == (2 + slice_dimensions):
+            if img.dtype == bool or (
+                np.issubdtype(img.dtype, np.integer)
+                and img.min() >= 0
+                and img.max() <= 1
+            ):
+                binary_string = True
+            else:
+                binary_string = False
+        else:
+            binary_string = img.ndim >= (3 + slice_dimensions) and not is_dataframe
 
     # Cast bools to uint8 (also one byte)
     if img.dtype == bool:
