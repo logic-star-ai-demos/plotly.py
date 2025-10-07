@@ -4793,15 +4793,15 @@ class BasePlotlyType(object):
 
                 return validator.present(self._compound_props[prop])
             elif isinstance(validator, (CompoundArrayValidator, BaseDataValidator)):
-                if self._compound_array_props.get(prop, None) is None:
-                    # Init list of compound objects
-                    if self._props is not None:
-                        self._compound_array_props[prop] = [
-                            validator.data_class(_parent=self)
-                            for _ in self._props.get(prop, [])
-                        ]
-                    else:
-                        self._compound_array_props[prop] = []
+
+                cached_list = self._compound_array_props.get(prop, None)
+                prop_list = []
+                if self._props is not None:
+                    prop_list = self._props.get(prop, [])
+                if cached_list is None or len(cached_list) != len(prop_list):
+                    self._compound_array_props[prop] = [
+                        validator.data_class(_parent=self) for _ in prop_list
+                    ]
 
                 return validator.present(self._compound_array_props[prop])
             elif self._props is not None and prop in self._props:
